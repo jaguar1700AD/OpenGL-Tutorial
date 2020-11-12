@@ -6,10 +6,14 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
 
 #include "include/shader_helper.h"
 #include "include/stb_image.h"
 #include "include/camera.h"
+#include "include/model_helper.h"
 
 using namespace std;
 
@@ -162,15 +166,15 @@ int main()
 };
     glm::vec3 cubePositions[] = {
         glm::vec3( 0.0f,  0.0f,  0.0f),
-        glm::vec3( 2.0f,  5.0f, -15.0f), 
-        glm::vec3(-1.5f, -2.2f, -2.5f),  
-        glm::vec3(-3.8f, -2.0f, -12.3f),  
-        glm::vec3( 2.4f, -0.4f, -3.5f),  
-        glm::vec3(-1.7f,  3.0f, -7.5f),  
-        glm::vec3( 1.3f, -2.0f, -2.5f),  
-        glm::vec3( 1.5f,  2.0f, -2.5f), 
-        glm::vec3( 1.5f,  0.2f, -1.5f), 
-        glm::vec3(-1.3f,  1.0f, -1.5f)  
+        // glm::vec3( 2.0f,  5.0f, -15.0f), 
+        // glm::vec3(-1.5f, -2.2f, -2.5f),  
+        // glm::vec3(-3.8f, -2.0f, -12.3f),  
+        // glm::vec3( 2.4f, -0.4f, -3.5f),  
+        // glm::vec3(-1.7f,  3.0f, -7.5f),  
+        // glm::vec3( 1.3f, -2.0f, -2.5f),  
+        // glm::vec3( 1.5f,  2.0f, -2.5f), 
+        // glm::vec3( 1.5f,  0.2f, -1.5f), 
+        // glm::vec3(-1.3f,  1.0f, -1.5f)  
     };
     
     unsigned int VBO; glGenBuffers(1, &VBO);
@@ -179,16 +183,19 @@ int main()
 
     Shader objShader("src/object.vs", "src/object.fs");
     Shader lightSrcShader("src/light_src.vs", "src/light_src.fs");
+    Shader roomShader("src/room.vs", "src/room.fs");
     
-    unsigned int VAO; glGenVertexArrays(1, &VAO);  
-    glBindVertexArray(VAO);
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
-    glEnableVertexAttribArray(0);   
-    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
-    glEnableVertexAttribArray(1);
-    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
-    glEnableVertexAttribArray(2);
+    // unsigned int VAO; glGenVertexArrays(1, &VAO);  
+    // glBindVertexArray(VAO);
+    // glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    // glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    // glEnableVertexAttribArray(0);   
+    // glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    // glEnableVertexAttribArray(1);
+    // glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    // glEnableVertexAttribArray(2);
+
+    Model objModel("src/textures/backpack/backpack.obj");
 
     unsigned int lightVAO; glGenVertexArrays(1, &lightVAO);
     glBindVertexArray(lightVAO);
@@ -196,27 +203,45 @@ int main()
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
     glEnableVertexAttribArray(0);
 
-    unsigned int diffuseMap = loadTexture("src/textures/container2.png");
-    unsigned int specularMap = loadTexture("src/textures/container2_specular.png");
-        
-    glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
+    unsigned int roomVAO; glGenVertexArrays(1, &roomVAO);
+    glBindVertexArray(roomVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
+    glEnableVertexAttribArray(1);
+    glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
+    glEnableVertexAttribArray(2);
+
+    float linear = 0.07f;
+    float quadratic = 0.017f;
+
+    glm::vec3 lightPos(0.0f, 3.0f, 0.0f);
     objShader.use();
     objShader.setFloat("material.shininess", 64.0f);
     objShader.setVec3("light.ambient",  0.2f, 0.2f, 0.2f);
     objShader.setVec3("light.diffuse",  0.5f, 0.5f, 0.5f); // darken diffuse light a bit
     objShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
     objShader.setFloat("light.constant",  1.0f);
-    objShader.setFloat("light.linear",    0.09f);
-    objShader.setFloat("light.quadratic", 0.032f);
+    objShader.setFloat("light.linear",  linear);
+    objShader.setFloat("light.quadratic", quadratic);
     objShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
     objShader.setVec3("lightPos",  lightPos);
     
-    objShader.setInt("material.diffuse", 0);
-    objShader.setInt("material.specular", 1);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, diffuseMap);
-    glActiveTexture(GL_TEXTURE1);
-    glBindTexture(GL_TEXTURE_2D, specularMap);
+    unsigned int diffuseMap = loadTexture("src/textures/container2.png");
+    unsigned int specularMap = loadTexture("src/textures/container2_specular.png");
+    roomShader.use();
+    roomShader.setInt("material.diffuse", 0);
+    roomShader.setInt("material.specular", 1);
+    roomShader.setFloat("material.shininess", 64.0f);
+    roomShader.setVec3("light.ambient",  0.2f, 0.2f, 0.2f);
+    roomShader.setVec3("light.diffuse",  0.5f, 0.5f, 0.5f); // darken diffuse light a bit
+    roomShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+    roomShader.setFloat("light.constant",  1.0f);
+    roomShader.setFloat("light.linear", linear);
+    roomShader.setFloat("light.quadratic", quadratic);
+    roomShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
+    roomShader.setVec3("lightPos",  lightPos);
 
     // .............. glm stuff .................................
 
@@ -224,6 +249,7 @@ int main()
     projection = glm::perspective(glm::radians(45.0f), 800.0f / 600.0f, 0.1f, 100.0f);
     objShader.use(); objShader.setMat4("projection", projection);
     lightSrcShader.use(); lightSrcShader.setMat4("projection", projection);
+    roomShader.use(); roomShader.setMat4("projection", projection);
 
     glEnable(GL_DEPTH_TEST); 
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
@@ -242,22 +268,23 @@ int main()
         ///////////////////////////////////////////////////////
 
         objShader.use();
-        glBindVertexArray(VAO);
+        //glBindVertexArray(VAO);
 
         // camera/view transformation
         view = camera.GetViewMatrix();
         objShader.setMat4("view", view);
         objShader.setVec3("viewPos", camera.Position);
 
-        for(unsigned int i = 0; i < 10; i++)
+        for(unsigned int i = 0; i < 1; i++)
         {
             model = glm::mat4(1.0f);
             model = glm::translate(model, cubePositions[i]);
+            model = glm::scale(model, glm::vec3(0.5f));
             float angle = 20.0f * i + (float)glfwGetTime() * glm::radians(1000.0f); 
             model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
             objShader.setMat4("model", model);
-
-            glDrawArrays(GL_TRIANGLES, 0, 36);
+            objModel.Draw(objShader);
+            //glDrawArrays(GL_TRIANGLES, 0, 36);
         }
 
         ///////////////////////////////////////////////////////
@@ -272,6 +299,26 @@ int main()
         model = glm::translate(model, lightPos);
         model = glm::scale(model, glm::vec3(0.2f));
         lightSrcShader.setMat4("model", model);
+
+        glDrawArrays(GL_TRIANGLES, 0, 36);
+
+        ///////////////////////////////////////////////////////
+
+        roomShader.use();
+        glBindVertexArray(roomVAO);
+
+        // camera/view transformation
+        roomShader.setMat4("view", view);
+
+        model = glm::mat4(1.0f);
+        model = glm::translate(model, glm::vec3(0.0f, 0.0f, 0.0f));
+        model = glm::scale(model, glm::vec3(10.0f));
+        roomShader.setMat4("model", model);
+
+        glActiveTexture(GL_TEXTURE0);
+        glBindTexture(GL_TEXTURE_2D, diffuseMap);
+        glActiveTexture(GL_TEXTURE1);
+        glBindTexture(GL_TEXTURE_2D, specularMap);
 
         glDrawArrays(GL_TRIANGLES, 0, 36);
 

@@ -6,7 +6,7 @@
 CURRENTDIR = $(shell pwd)
 CC = g++
 CXXFLAGS = -g -Wall -std=c++14 
-LDFLAGS = -lglfw3 -lGL -lX11 -lpthread -lXrandr -lXi -ldl
+LDFLAGS = -lglfw3 -lGL -lX11 -lpthread -lXrandr -lXi -ldl -lassimp
 
 # Makefile settings - Can be customized.
 APPNAME = app

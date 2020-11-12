@@ -1,3 +1,3 @@
 tput reset
 make
-./app
+LD_LIBRARY_PATH=/usr/local/lib ./app
