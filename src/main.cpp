@@ -123,16 +123,16 @@ int main()
     -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f
     };
     glm::vec3 cubePositions[] = {
-        glm::vec3( 0.0f,  0.0f,  0.0f), 
-        glm::vec3( 2.0f,  5.0f, -15.0f), 
-        glm::vec3(-1.5f, -2.2f, -2.5f),  
-        glm::vec3(-3.8f, -2.0f, -12.3f),  
-        glm::vec3( 2.4f, -0.4f, -3.5f),  
-        glm::vec3(-1.7f,  3.0f, -7.5f),  
-        glm::vec3( 1.3f, -2.0f, -2.5f),  
-        glm::vec3( 1.5f,  2.0f, -2.5f), 
-        glm::vec3( 1.5f,  0.2f, -1.5f), 
-        glm::vec3(-1.3f,  1.0f, -1.5f)  
+        glm::vec3( 0.0f,  0.0f,  0.0f)
+        // glm::vec3( 2.0f,  5.0f, -15.0f), 
+        // glm::vec3(-1.5f, -2.2f, -2.5f),  
+        // glm::vec3(-3.8f, -2.0f, -12.3f),  
+        // glm::vec3( 2.4f, -0.4f, -3.5f),  
+        // glm::vec3(-1.7f,  3.0f, -7.5f),  
+        // glm::vec3( 1.3f, -2.0f, -2.5f),  
+        // glm::vec3( 1.5f,  2.0f, -2.5f), 
+        // glm::vec3( 1.5f,  0.2f, -1.5f), 
+        // glm::vec3(-1.3f,  1.0f, -1.5f)  
     };
     
     unsigned int VBO; glGenBuffers(1, &VBO);
@@ -159,8 +159,14 @@ int main()
         
     glm::vec3 lightPos(1.2f, 1.0f, 2.0f);
     objShader.use();
-    objShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
-    objShader.setVec3("lightColor",  1.0f, 1.0f, 1.0f);
+    objShader.setVec3("material.ambient", 1.0f, 0.5f, 0.31f);
+    objShader.setVec3("material.diffuse", 1.0f, 0.5f, 0.31f);
+    objShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
+    objShader.setFloat("material.shininess", 32.0f);
+    objShader.setVec3("light.ambient",  0.2f, 0.2f, 0.2f);
+    objShader.setVec3("light.diffuse",  0.5f, 0.5f, 0.5f); // darken diffuse light a bit
+    objShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
+    objShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
     objShader.setVec3("lightPos",  lightPos);
 
     // .............. glm stuff .................................
@@ -194,7 +200,7 @@ int main()
         objShader.setMat4("view", view);
         objShader.setVec3("viewPos", camera.Position);
 
-        for(unsigned int i = 0; i < 10; i++)
+        for(unsigned int i = 0; i < 1; i++)
         {
             model = glm::mat4(1.0f);
             model = glm::translate(model, cubePositions[i]);
